@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { SwingAnalysis } from "@/types/analysis";
 import CoachingReport from "@/components/CoachingReport";
+import Link from "next/link";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -41,80 +42,119 @@ export default function UploadPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Analysis failed");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Analysis failed");
       }
 
       const result: SwingAnalysis = await response.json();
       setAnalysis(result);
     } catch (err) {
-      setError("Failed to analyze video. Please try again.");
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to analyze video. Please try again.";
+      setError(errorMessage);
+      console.error("Full error:", err);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            SwingCoach AI
-          </h1>
-          <p className="text-gray-600">
-            Upload your tennis swing and get instant AI coaching feedback
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-gray-50 to-green-100">
+      {/* Header with Court Lines */}
+      <div className="relative bg-gradient-to-r from-green-800 to-green-700 text-white py-8 mb-8 overflow-hidden">
+        {/* Court Lines Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-white"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white"></div>
         </div>
 
-        {/* Upload Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/" className="text-yellow-300 hover:text-yellow-200 text-sm mb-2 inline-block">
+                ← Back to Home
+              </Link>
+              <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
+                <span className="text-3xl">🎾</span>
+                Bederer AI
+              </h1>
+              <p className="text-green-100">
+                Upload your swing and get instant AI coaching feedback
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* Upload Section - Tennis Court Theme */}
+        <div className="bg-white rounded-xl shadow-2xl p-8 mb-8 border-4 border-green-600">
           <div className="space-y-6">
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload Video
+              <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-2xl"></span>
+                Upload Your Swing Video
               </label>
               <input
                 type="file"
                 accept="video/*"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-indigo-50 file:text-indigo-700
-                  hover:file:bg-indigo-100
-                  cursor-pointer"
+                className="block w-full text-sm text-gray-700
+                  file:mr-4 file:py-3 file:px-6
+                  file:rounded-lg file:border-2
+                  file:text-sm file:font-bold
+                  file:bg-green-50 file:text-green-800
+                  file:border-green-600
+                  hover:file:bg-green-100
+                  cursor-pointer
+                  border-2 border-dashed border-gray-300 rounded-lg p-4
+                  hover:border-green-500 transition-colors"
               />
+              <p className="mt-2 text-sm text-gray-500">
+                 Tip: 5-10 second clips work best. Phone camera quality is perfect!
+              </p>
             </div>
 
             {/* Shot Type Selector */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Shot Type
+              <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-2xl"></span>
+                What Shot Are You Hitting?
               </label>
-              <select
-                value={shotType}
-                onChange={(e) => setShotType(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="forehand">Forehand</option>
-                <option value="backhand">Backhand</option>
-                <option value="serve">Serve</option>
-                <option value="volley">Volley</option>
-              </select>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { value: "forehand", label: "Forehand" },
+                  { value: "backhand", label: "Backhand" },
+                  { value: "serve",  label: "Serve" },
+                  { value: "volley", label: "Volley" },
+                ].map((shot) => (
+                  <button
+                    key={shot.value}
+                    onClick={() => setShotType(shot.value)}
+                    className={`p-4 rounded-lg border-2 font-bold transition-all
+                      ${shotType === shot.value
+                        ? "bg-green-600 text-white border-green-700 shadow-lg scale-105"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50"
+                      }`}
+                  >
+                    <div className="text-2xl mb-1">{shot.emoji}</div>
+                    <div className="text-sm">{shot.label}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Video Preview */}
             {videoPreview && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="text-2xl"></span>
                   Preview
                 </label>
                 <video
                   src={videoPreview}
                   controls
-                  className="w-full rounded-lg shadow-md max-h-96"
+                  className="w-full rounded-lg shadow-lg border-4 border-green-200 max-h-96"
                 />
               </div>
             )}
@@ -123,14 +163,15 @@ export default function UploadPage() {
             <button
               onClick={handleAnalyze}
               disabled={!selectedFile || isAnalyzing}
-              className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold
-                hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed
-                transition-colors duration-200"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl font-black text-lg
+                hover:from-green-700 hover:to-green-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed
+                transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-[1.02]
+                border-4 border-green-800 disabled:border-gray-500"
             >
               {isAnalyzing ? (
-                <span className="flex items-center justify-center">
+                <span className="flex items-center justify-center gap-3">
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="animate-spin h-6 w-6 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -149,17 +190,24 @@ export default function UploadPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Analyzing your swing...
+                  <span>Analyzing Your Swing...</span>
+                  <span className="text-2xl animate-bounce">🎾</span>
                 </span>
               ) : (
-                "Analyze My Swing"
+                <span className="flex items-center justify-center gap-2">
+                  <span>Analyze My Swing</span>
+                  <span className="text-2xl"></span>
+                </span>
               )}
             </button>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
+              <div className="bg-red-50 border-4 border-red-300 text-red-800 px-6 py-4 rounded-lg font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⚠️</span>
+                  <span>{error}</span>
+                </div>
               </div>
             )}
           </div>

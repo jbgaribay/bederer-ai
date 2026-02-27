@@ -82,7 +82,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
               <span className="font-medium">Observation:</span> {category.observation}
             </p>
             <p className="text-sm">
-              <span className="font-medium">💡 Tip:</span> {category.tip}
+              <span className="font-medium">Tip:</span> {category.tip}
             </p>
           </div>
         ))}
@@ -91,7 +91,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
       {/* Top Priority */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-indigo-900 mb-2 flex items-center gap-2">
-          🎯 Top Priority
+          Top Priority
         </h3>
         <p className="text-indigo-800">{analysis.top_priority}</p>
       </div>
@@ -99,7 +99,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
       {/* Drill Recommendation */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
-          🏋️ Recommended Drill
+          Recommended Drill
         </h3>
         <p className="text-blue-800">{analysis.drill_recommendation}</p>
       </div>
