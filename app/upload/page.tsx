@@ -148,18 +148,18 @@ export default function UploadPage() {
                 </div>
 
                 {/* Video Preview */}
-                {videoPreview && !analysis && (
-                  <div>
+                {videoPreview && (
+                <div>
                     <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <span className="text-2xl">👀</span>
-                      Preview
+                    <span className="text-2xl">👀</span>
+                    Preview
                     </label>
                     <video
-                      src={videoPreview}
-                      controls
-                      className="w-full rounded-lg shadow-lg border-4 border-green-200 max-h-96"
+                    src={videoPreview}
+                    controls
+                    className="w-full rounded-lg shadow-lg border-4 border-green-200 max-h-96"
                     />
-                  </div>
+                </div>
                 )}
 
                 {/* Analyze Button */}
