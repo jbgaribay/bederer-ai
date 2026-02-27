@@ -58,36 +58,35 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
         </div>
       </div>
 
-      {/* Categories with Frames */}
-      <div className="space-y-6">
-        <h3 className="text-2xl font-black text-gray-900 mb-4 flex items-center gap-2">
+      {/* Categories Grid - 2 columns on desktop */}
+      <div>
+        <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
           <span className="text-2xl">📊</span>
           Technique Breakdown
         </h3>
-        {analysis.categories.map((category, index) => (
-          <div
-            key={index}
-            className={`border-4 rounded-xl p-6 ${getSeverityColor(
-              category.severity
-            )} transition-all hover:shadow-lg`}
-          >
-            {/* Category Header with Score */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{getSeverityIcon(category.severity)}</span>
-                <h4 className="font-black text-xl">{category.name}</h4>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {analysis.categories.map((category, index) => (
+            <div
+              key={index}
+              className={`border-4 rounded-xl p-5 ${getSeverityColor(
+                category.severity
+              )} transition-all hover:shadow-lg`}
+            >
+              {/* Category Header with Score */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{getSeverityIcon(category.severity)}</span>
+                  <h4 className="font-black text-lg">{category.name}</h4>
+                </div>
+                <div className={`text-2xl font-black ${getScoreColor(category.score)}`}>
+                  {category.score}/10
+                </div>
               </div>
-              <div className={`text-3xl font-black ${getScoreColor(category.score)}`}>
-                {category.score}/10
-              </div>
-            </div>
 
-            {/* Frame + Feedback Side by Side */}
-            <div className="grid md:grid-cols-2 gap-6 items-start">
-              {/* Left: Frame Image */}
+              {/* Frame Image */}
               {analysis.frames && category.frameIndex !== undefined && analysis.frames[category.frameIndex] && (
-                <div className="space-y-2">
-                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                <div className="mb-4">
+                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                     Reference Frame #{category.frameIndex + 1}
                   </div>
                   <img
@@ -98,7 +97,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
                 </div>
               )}
 
-              {/* Right: Observation and Tip */}
+              {/* Observation and Tip */}
               <div className="space-y-3">
                 <div>
                   <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
@@ -118,8 +117,8 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Top Priority */}
