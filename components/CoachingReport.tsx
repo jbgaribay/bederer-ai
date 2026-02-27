@@ -61,7 +61,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
       {/* Categories Grid - 2 columns on desktop */}
       <div>
         <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
-          <span className="text-2xl">📊</span>
+          <span className="text-2xl"></span>
           Technique Breakdown
         </h3>
         <div className="grid lg:grid-cols-2 gap-6">
@@ -109,7 +109,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
                 </div>
                 <div className="pt-2 border-t-2 border-gray-300">
                   <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 flex items-center gap-1">
-                    <span>💡</span> Coaching Tip
+                    <span></span> Coaching Tip
                   </div>
                   <p className="text-sm font-medium leading-relaxed">
                     {category.tip}
@@ -132,7 +132,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
       {/* Drill Recommendation */}
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-4 border-blue-600 rounded-xl p-6 shadow-lg">
         <h3 className="text-xl font-black text-blue-900 mb-3 flex items-center gap-2">
-          🏋️ Recommended Drill
+           Recommended Drill
         </h3>
         <p className="text-blue-800 text-lg leading-relaxed">{analysis.drill_recommendation}</p>
       </div>
