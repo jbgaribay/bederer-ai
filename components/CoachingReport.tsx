@@ -40,68 +40,102 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 space-y-8">
+    <div className="bg-white rounded-xl shadow-2xl p-8 space-y-8 border-4 border-green-600">
       {/* Header */}
-      <div className="text-center border-b pb-6">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center border-b-4 border-green-200 pb-6">
+        <div className="inline-block mb-4 text-4xl">🎾</div>
+        <h2 className="text-3xl font-black text-gray-900 mb-2">
           Your Coaching Report
         </h2>
-        <p className="text-gray-600 capitalize">
+        <p className="text-gray-600 capitalize text-lg">
           {analysis.shot_type} Analysis
         </p>
         <div className="mt-4">
-          <div className="text-5xl font-bold text-indigo-600">
+          <div className="text-6xl font-black text-green-600">
             {analysis.overall_score.toFixed(1)}
           </div>
-          <div className="text-sm text-gray-500 mt-1">Overall Score</div>
+          <div className="text-sm text-gray-500 mt-1 font-semibold">Overall Score</div>
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
+      {/* Categories with Frames */}
+      <div className="space-y-6">
+        <h3 className="text-2xl font-black text-gray-900 mb-4 flex items-center gap-2">
+          <span className="text-2xl">📊</span>
           Technique Breakdown
         </h3>
         {analysis.categories.map((category, index) => (
           <div
             key={index}
-            className={`border rounded-lg p-4 ${getSeverityColor(
+            className={`border-4 rounded-xl p-6 ${getSeverityColor(
               category.severity
-            )}`}
+            )} transition-all hover:shadow-lg`}
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{getSeverityIcon(category.severity)}</span>
-                <h4 className="font-semibold text-lg">{category.name}</h4>
+            {/* Category Header with Score */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{getSeverityIcon(category.severity)}</span>
+                <h4 className="font-black text-xl">{category.name}</h4>
               </div>
-              <div className={`text-2xl font-bold ${getScoreColor(category.score)}`}>
+              <div className={`text-3xl font-black ${getScoreColor(category.score)}`}>
                 {category.score}/10
               </div>
             </div>
-            <p className="text-sm mb-2 italic">
-              <span className="font-medium">Observation:</span> {category.observation}
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Tip:</span> {category.tip}
-            </p>
+
+            {/* Frame + Feedback Side by Side */}
+            <div className="grid md:grid-cols-2 gap-6 items-start">
+              {/* Left: Frame Image */}
+              {analysis.frames && category.frameIndex !== undefined && analysis.frames[category.frameIndex] && (
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                    Reference Frame #{category.frameIndex + 1}
+                  </div>
+                  <img
+                    src={`data:image/jpeg;base64,${analysis.frames[category.frameIndex]}`}
+                    alt={`Frame for ${category.name}`}
+                    className="w-full rounded-lg border-4 border-gray-800 shadow-md"
+                  />
+                </div>
+              )}
+
+              {/* Right: Observation and Tip */}
+              <div className="space-y-3">
+                <div>
+                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Observation
+                  </div>
+                  <p className="text-sm italic leading-relaxed">
+                    {category.observation}
+                  </p>
+                </div>
+                <div className="pt-2 border-t-2 border-gray-300">
+                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <span>💡</span> Coaching Tip
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed">
+                    {category.tip}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Top Priority */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-indigo-900 mb-2 flex items-center gap-2">
-          Top Priority
+      <div className="bg-gradient-to-r from-green-50 to-green-100 border-4 border-green-600 rounded-xl p-6 shadow-lg">
+        <h3 className="text-xl font-black text-green-900 mb-3 flex items-center gap-2">
+          🎯 Top Priority
         </h3>
-        <p className="text-indigo-800">{analysis.top_priority}</p>
+        <p className="text-green-800 text-lg leading-relaxed">{analysis.top_priority}</p>
       </div>
 
       {/* Drill Recommendation */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
-          Recommended Drill
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-4 border-blue-600 rounded-xl p-6 shadow-lg">
+        <h3 className="text-xl font-black text-blue-900 mb-3 flex items-center gap-2">
+          🏋️ Recommended Drill
         </h3>
-        <p className="text-blue-800">{analysis.drill_recommendation}</p>
+        <p className="text-blue-800 text-lg leading-relaxed">{analysis.drill_recommendation}</p>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export interface AnalysisCategory {
     severity: "good" | "needs_work" | "critical";
     observation: string;
     tip: string;
+    frameIndex?: number; // Which frame (0-5) corresponds to this category
   }
   
   export interface SwingAnalysis {
@@ -14,4 +15,5 @@ export interface AnalysisCategory {
     categories: AnalysisCategory[];
     top_priority: string;
     drill_recommendation: string;
+    frames?: string[]; // Base64 encoded frame images
   }

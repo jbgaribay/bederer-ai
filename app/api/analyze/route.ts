@@ -48,7 +48,29 @@ export async function POST(request: NextRequest) {
     // Clean up temporary video file
     await cleanupVideo(videoPath);
 
-    return NextResponse.json(analysis);
+    // Add frame index mapping to categories
+    const categoriesWithFrames = analysis.categories.map((category, index) => {
+      // Map categories to specific frames
+      const frameMapping: { [key: string]: number } = {
+        "Stance & Preparation": 0,
+        "Backswing & Unit Turn": 1,
+        "Contact Point": 2,
+        "Follow-Through": 3,
+        "Footwork & Balance": 5,
+      };
+      
+      return {
+        ...category,
+        frameIndex: frameMapping[category.name] ?? index,
+      };
+    });
+
+    // Return analysis with frames
+    return NextResponse.json({
+      ...analysis,
+      categories: categoriesWithFrames,
+      frames: frames, // Include the base64 frames
+    });
   } catch (error) {
     console.error("Error in analyze route:", error);
     return NextResponse.json(
