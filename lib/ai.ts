@@ -115,8 +115,18 @@ Be specific and avoid generic advice like "practice more" or "watch your form."`
     }
 
     // Parse JSON response
-    const analysis: SwingAnalysis = JSON.parse(textContent.text);
-    return analysis;
+// Parse JSON response - strip markdown code fences if present
+let jsonText = textContent.text.trim();
+
+// Remove ```json and ``` if Claude wrapped the response
+if (jsonText.startsWith("```json")) {
+  jsonText = jsonText.replace(/^```json\s*/, "").replace(/```\s*$/, "");
+} else if (jsonText.startsWith("```")) {
+  jsonText = jsonText.replace(/^```\s*/, "").replace(/```\s*$/, "");
+}
+
+const analysis: SwingAnalysis = JSON.parse(jsonText);
+return analysis;
   } catch (error) {
     console.error("Error analyzing swing:", error);
     throw new Error("Failed to analyze swing. Please try again.");
