@@ -70,7 +70,7 @@ export default function SwingHistory({ history, onClear }: SwingHistoryProps) {
       <div className="bg-white rounded-xl shadow-2xl p-6 border-4 border-green-600">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            📈 My Progress
+             My Progress
           </h2>
           <button
             onClick={() => {

@@ -86,8 +86,8 @@ export default function UploadPage() {
                 ← Back to Home
               </Link>
               <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
-                <span className="text-3xl">🎾</span>
-                SwingCoach AI
+                <span className="text-3xl"></span>
+                Bederer AI
               </h1>
               <p className="text-green-100">
                 Upload your swing and get instant AI coaching feedback
@@ -159,7 +159,7 @@ export default function UploadPage() {
                   {/* File Upload */}
                   <div>
                     <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <span className="text-2xl">📹</span>
+                      <span className="text-2xl"></span>
                       Upload Your Swing Video
                     </label>
                     <input
@@ -261,7 +261,7 @@ export default function UploadPage() {
                     ) : (
                       <span className="flex items-center justify-center gap-2">
                         <span>Analyze My Swing</span>
-                        <span className="text-2xl">🚀</span>
+                        <span className="text-2xl"></span>
                       </span>
                     )}
                   </button>
