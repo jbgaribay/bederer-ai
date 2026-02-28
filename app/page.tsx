@@ -24,9 +24,9 @@ export default function HomePage() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
-              Your AI Tennis Coach
+              Your Personal AI Tennis Coach
               <span className="block text-yellow-300 mt-2">
-                In Your Pocket
+                On your computer
               </span>
             </h1>
             
@@ -197,7 +197,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl"></span>
-                    <h4 className="font-bold text-lg">Contact Point</h4>
+                    <h4 className="font-bold text-lg text-green-900">Contact Point</h4>
                   </div>
                   <div className="text-2xl font-bold text-green-600">9/10</div>
                 </div>
@@ -216,7 +216,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl"></span>
-                    <h4 className="font-bold text-lg">Follow-Through</h4>
+                    <h4 className="font-bold text-lg text-green-900">Follow-Through</h4>
                   </div>
                   <div className="text-2xl font-bold text-yellow-600">6/10</div>
                 </div>
