@@ -125,7 +125,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
                 </div>
                 <div className="pt-2 border-t-2 border-gray-300">
                   <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 flex items-center gap-1">
-                    <span></span> Coaching Tip
+                    <span></span> Coaching Tips
                   </div>
                   <p className="text-sm font-medium leading-relaxed">
                     {category.tip}
@@ -140,7 +140,7 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
       {/* Top Priority */}
       <div className="bg-gradient-to-r from-green-50 to-green-100 border-4 border-green-600 rounded-xl p-6 shadow-lg">
         <h3 className="text-xl font-black text-green-900 mb-3 flex items-center gap-2">
-           Top Priority
+          Top Priority
         </h3>
         <p className="text-green-800 text-lg leading-relaxed">{analysis.top_priority}</p>
       </div>
