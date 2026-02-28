@@ -95,7 +95,7 @@ export default function UploadPage() {
                 {/* File Upload */}
                 <div>
                   <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <span className="text-2xl">📹</span>
+                    <span className="text-2xl"></span>
                     Upload Your Swing Video
                   </label>
                   <input
@@ -114,22 +114,22 @@ export default function UploadPage() {
                       hover:border-green-500 transition-colors"
                   />
                   <p className="mt-2 text-sm text-gray-500">
-                    📱 Tip: 5-10 second clips work best. Phone camera quality is perfect!
+                    Tip: 5-10 second clips work best. Phone camera quality is perfect!
                   </p>
                 </div>
 
                 {/* Shot Type Selector */}
                 <div>
                   <label className="block text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <span className="text-2xl">🎯</span>
+                    <span className="text-2xl"></span>
                     What Shot Are You Hitting?
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { value: "forehand", emoji: "💪", label: "Forehand" },
-                      { value: "backhand", emoji: "🤚", label: "Backhand" },
-                      { value: "serve", emoji: "⬆️", label: "Serve" },
-                      { value: "volley", emoji: "⚡", label: "Volley" },
+                      { value: "forehand", label: "Forehand" },
+                      { value: "backhand", label: "Backhand" },
+                      { value: "serve",    label: "Serve" },
+                      { value: "volley",   label: "Volley" },
                     ].map((shot) => (
                       <button
                         key={shot.value}
@@ -199,7 +199,7 @@ export default function UploadPage() {
                   ) : (
                     <span className="flex items-center justify-center gap-2">
                       <span>Analyze My Swing</span>
-                      <span className="text-2xl">🚀</span>
+                      <span className="text-2xl"></span>
                     </span>
                   )}
                 </button>
