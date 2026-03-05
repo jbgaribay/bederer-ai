@@ -222,7 +222,7 @@ export default function SwingHistory({ history, onClear }: SwingHistoryProps) {
                 {/* Top priority */}
                 <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3">
                   <div className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">
-                    🎯 Top Priority
+                     Top Priority
                   </div>
                   <p className="text-sm text-green-900">{swing.top_priority}</p>
                 </div>
