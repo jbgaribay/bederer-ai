@@ -262,7 +262,7 @@ export default function UploadPage() {
                         </>
                       ) : (
                         <>
-                          <div className="text-5xl mb-3">📁</div>
+                          <div className="text-5xl mb-3"></div>
                           <p className="font-black text-gray-700 text-base">
                             Drag & drop your video here
                           </p>
