@@ -61,25 +61,29 @@ const readLocal = (): SavedSwing[] => {
 export function useSwingHistory(user: User | null, authLoading: boolean) {
   const [history, setHistory] = useState<SavedSwing[]>([]);
 
+  const userId = user?.id ?? null;
+
   useEffect(() => {
     if (authLoading) return;
 
     let cancelled = false;
 
     (async () => {
-      if (!user) {
+      if (!userId) {
         if (!cancelled) setHistory(readLocal());
         return;
       }
 
       const supabase = createClient();
 
-      // Move any swings saved as a guest into the new account
+      // Move any swings saved as a guest into the new account. Clear them before the
+      // insert so a re-run of this effect (auth events, Strict Mode) can't import twice.
       const local = readLocal();
       if (local.length > 0) {
+        localStorage.removeItem(STORAGE_KEY);
         const { error } = await supabase.from("swings").insert(
           local.map((s) => ({
-            user_id: user.id,
+            user_id: userId,
             created_at: new Date(s.timestamp).toISOString(),
             shot_type: s.shot_type,
             overall_score: s.overall_score,
@@ -88,8 +92,10 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
             drill_recommendation: s.drill_recommendation,
           }))
         );
-        if (!error) localStorage.removeItem(STORAGE_KEY);
-        else console.error("Failed to import guest swings:", error);
+        if (error) {
+          console.error("Failed to import guest swings:", error);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+        }
       }
 
       const { data, error } = await supabase
@@ -105,7 +111,7 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading]);
+  }, [userId, authLoading]);
 
   // The analyze API already saves signed-in users' swings, so this only updates local state
   // (and localStorage for guests).
@@ -124,7 +130,7 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
 
     setHistory((prev) => {
       const updated = [newSwing, ...prev].slice(0, MAX_SWINGS);
-      if (!user) {
+      if (!userId) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         } catch {
@@ -138,8 +144,8 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
   };
 
   const clearHistory = async () => {
-    if (user) {
-      const { error } = await createClient().from("swings").delete().eq("user_id", user.id);
+    if (userId) {
+      const { error } = await createClient().from("swings").delete().eq("user_id", userId);
       if (error) {
         console.error("Failed to clear history:", error);
         return;

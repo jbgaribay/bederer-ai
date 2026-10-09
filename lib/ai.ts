@@ -83,9 +83,8 @@ Be specific and avoid generic advice like "practice more" or "watch your form."`
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1500,
-      temperature: 0.3,
+      model: "claude-sonnet-5-5",
+      max_tokens: 16000,
       system: systemPrompt,
       messages: [
         {

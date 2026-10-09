@@ -53,6 +53,8 @@ export default function AuthModal({ open, onClose, reason = "manual" }: AuthModa
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
         className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border-4 border-green-600 p-8"
         onClick={(e) => e.stopPropagation()}
       >
