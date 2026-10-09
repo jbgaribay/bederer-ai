@@ -5,9 +5,24 @@ import { writeFile } from "fs/promises";
 import path from "path";
 import { extractFrames, cleanupVideo } from "@/lib/ffmpeg";
 import { analyzeSwing } from "@/lib/ai";
+import { createClient } from "@/lib/supabase/server";
+
+// Set after a guest's free scan; guests with this cookie must sign up to keep scanning.
+const FREE_SCAN_COOKIE = "bederer_free_scan_used";
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: claimsData } = await supabase.auth.getClaims();
+    const userId = claimsData?.claims?.sub ?? null;
+
+    if (!userId && request.cookies.get(FREE_SCAN_COOKIE)) {
+      return NextResponse.json(
+        { error: "Create a free account to keep analyzing swings.", code: "SIGNUP_REQUIRED" },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("video") as File;
     const shotType = formData.get("shotType") as string || "forehand";
@@ -65,12 +80,37 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // Save to the signed-in user's history (frames are too large to store)
+    if (userId) {
+      const { error: insertError } = await supabase.from("swings").insert({
+        user_id: userId,
+        shot_type: analysis.shot_type,
+        overall_score: analysis.overall_score,
+        categories: categoriesWithFrames,
+        top_priority: analysis.top_priority,
+        drill_recommendation: analysis.drill_recommendation,
+      });
+      if (insertError) console.error("Failed to save swing:", insertError);
+    }
+
     // Return analysis with frames
-    return NextResponse.json({
+    const response = NextResponse.json({
       ...analysis,
       categories: categoriesWithFrames,
       frames: frames, // Include the base64 frames
     });
+
+    if (!userId) {
+      response.cookies.set(FREE_SCAN_COOKIE, "1", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Error in analyze route:", error);
     return NextResponse.json(

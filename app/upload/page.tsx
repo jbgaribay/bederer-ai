@@ -7,6 +7,8 @@ import { SwingAnalysis } from "@/types/analysis";
 import CoachingReport from "@/components/CoachingReport";
 import SwingHistory from "@/components/SwingHistory";
 import { useSwingHistory } from "@/hooks/useSwingHistory";
+import { useUser } from "@/hooks/useUser";
+import AuthModal from "@/components/AuthModal";
 import Link from "next/link";
 
 const LOADING_STEPS = [
@@ -15,6 +17,9 @@ const LOADING_STEPS = [
   { label: "AI analyzing technique", duration: 15000 },
   { label: "Generating your report", duration: 99999 }, // stays until done
 ];
+
+// Mirrors the server's free-scan cookie so guests see the sign-up prompt before uploading again
+const FREE_SCAN_KEY = "bederer_free_scan_used";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -31,7 +36,25 @@ export default function UploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const stepTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const { history, saveSwing, clearHistory } = useSwingHistory();
+  const [authModal, setAuthModal] = useState<{ open: boolean; reason: "limit" | "manual" }>({
+    open: false,
+    reason: "manual",
+  });
+  const [freeScanUsed, setFreeScanUsed] = useState(false);
+
+  const { user, loading: authLoading, signOut } = useUser();
+  const { history, saveSwing, clearHistory } = useSwingHistory(user, authLoading);
+
+  useEffect(() => {
+    try {
+      setFreeScanUsed(localStorage.getItem(FREE_SCAN_KEY) === "1");
+    } catch {}
+  }, []);
+
+  // Close the prompt once the guest signs in
+  useEffect(() => {
+    if (user) setAuthModal((m) => ({ ...m, open: false }));
+  }, [user]);
 
   const MAX_FILE_SIZE_MB = 500;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -104,8 +127,20 @@ export default function UploadPage() {
 
   const handleDragLeave = () => setIsDragOver(false);
 
+  const markFreeScanUsed = () => {
+    setFreeScanUsed(true);
+    try {
+      localStorage.setItem(FREE_SCAN_KEY, "1");
+    } catch {}
+  };
+
   const handleAnalyze = async () => {
     if (!selectedFile) return;
+
+    if (!user && freeScanUsed) {
+      setAuthModal({ open: true, reason: "limit" });
+      return;
+    }
 
     setIsAnalyzing(true);
     setError(null);
@@ -122,12 +157,18 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (errorData.code === "SIGNUP_REQUIRED") {
+          markFreeScanUsed();
+          setAuthModal({ open: true, reason: "limit" });
+          return;
+        }
         throw new Error(errorData.error || "Analysis failed");
       }
 
       const result: SwingAnalysis = await response.json();
       setAnalysis(result);
       saveSwing(result);
+      if (!user) markFreeScanUsed();
       setSavedConfirm(true);
       setTimeout(() => setSavedConfirm(false), 3000);
     } catch (err) {
@@ -144,13 +185,18 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-gray-50 to-green-100">
+      <AuthModal
+        open={authModal.open}
+        reason={authModal.reason}
+        onClose={() => setAuthModal((m) => ({ ...m, open: false }))}
+      />
       {/* Header */}
       <div className="relative bg-gradient-to-r from-green-800 to-green-700 text-white py-8 mb-8 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 right-0 h-1 bg-white"></div>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white"></div>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-start justify-between gap-4">
           <div>
             <Link
               href="/"
@@ -166,6 +212,29 @@ export default function UploadPage() {
               Upload your swing and get instant AI coaching feedback
             </p>
           </div>
+
+          {!authLoading && (
+            <div className="flex flex-col items-end gap-2 text-sm">
+              {user ? (
+                <>
+                  <span className="text-green-100 truncate max-w-[12rem]">{user.email}</span>
+                  <button
+                    onClick={signOut}
+                    className="text-yellow-300 hover:text-yellow-200 font-semibold"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setAuthModal({ open: true, reason: "manual" })}
+                  className="bg-yellow-400 text-green-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 border-2 border-yellow-500"
+                >
+                  Sign in
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -310,7 +379,6 @@ export default function UploadPage() {
                                 : "bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50"
                             }`}
                         >
-                          <div className="text-2xl mb-1">{shot.emoji}</div>
                           <div className="text-sm">{shot.label}</div>
                         </button>
                       ))}
@@ -449,7 +517,25 @@ export default function UploadPage() {
                   </div>
                 </div>
               ) : analysis ? (
-                <CoachingReport analysis={analysis} />
+                <div className="space-y-6">
+                  {!user && !authLoading && (
+                    <div className="bg-yellow-50 border-4 border-yellow-400 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                      <div>
+                        <p className="font-black text-green-900 text-lg">That was your free analysis</p>
+                        <p className="text-green-800 text-sm">
+                          Sign up free to keep analyzing and save this swing to your account.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setAuthModal({ open: true, reason: "limit" })}
+                        className="shrink-0 bg-green-700 text-white px-5 py-3 rounded-lg font-bold hover:bg-green-800 border-2 border-green-900"
+                      >
+                        Sign Up Free
+                      </button>
+                    </div>
+                  )}
+                  <CoachingReport analysis={analysis} />
+                </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-2xl p-12 border-4 border-dashed border-green-300 text-center">
                   <div className="text-6xl mb-4">🎾</div>

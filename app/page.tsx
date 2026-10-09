@@ -47,7 +47,7 @@ export default function HomePage() {
                 Analyze My Swing Now →
               </Link>
               <div className="text-green-200 text-sm">
-                ✓ Free to try • ✓ No signup required
+                ✓ First analysis free • ✓ No signup to try
               </div>
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function HomePage() {
             Analyze My Swing Now 
           </Link>
           <p className="mt-6 text-green-700 font-medium">
-            No credit card. No signup. Just upload and go.
+            No credit card. Your first analysis needs no signup.
           </p>
         </div>
       </section>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
 import { SwingAnalysis } from "@/types/analysis";
+import { createClient } from "@/lib/supabase/client";
 
 const STORAGE_KEY = "swingcoach_history";
 const MAX_SWINGS = 10;
@@ -15,28 +17,104 @@ export interface SavedSwing {
   drill_recommendation: string;
 }
 
-export function useSwingHistory() {
+interface SwingRow {
+  id: string;
+  created_at: string;
+  shot_type: string;
+  overall_score: number;
+  categories: SwingAnalysis["categories"];
+  top_priority: string;
+  drill_recommendation: string;
+}
+
+const formatDate = (timestamp: number) =>
+  new Date(timestamp).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const fromRow = (row: SwingRow): SavedSwing => {
+  const timestamp = new Date(row.created_at).getTime();
+  return {
+    id: row.id,
+    date: formatDate(timestamp),
+    timestamp,
+    shot_type: row.shot_type,
+    overall_score: Number(row.overall_score),
+    categories: row.categories,
+    top_priority: row.top_priority,
+    drill_recommendation: row.drill_recommendation,
+  };
+};
+
+const readLocal = (): SavedSwing[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Guests keep history in localStorage; signed-in users keep it in Supabase.
+export function useSwingHistory(user: User | null, authLoading: boolean) {
   const [history, setHistory] = useState<SavedSwing[]>([]);
 
-  // Load from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setHistory(JSON.parse(stored));
-    } catch {
-      console.error("Failed to load swing history");
-    }
-  }, []);
+    if (authLoading) return;
 
+    let cancelled = false;
+
+    (async () => {
+      if (!user) {
+        if (!cancelled) setHistory(readLocal());
+        return;
+      }
+
+      const supabase = createClient();
+
+      // Move any swings saved as a guest into the new account
+      const local = readLocal();
+      if (local.length > 0) {
+        const { error } = await supabase.from("swings").insert(
+          local.map((s) => ({
+            user_id: user.id,
+            created_at: new Date(s.timestamp).toISOString(),
+            shot_type: s.shot_type,
+            overall_score: s.overall_score,
+            categories: s.categories,
+            top_priority: s.top_priority,
+            drill_recommendation: s.drill_recommendation,
+          }))
+        );
+        if (!error) localStorage.removeItem(STORAGE_KEY);
+        else console.error("Failed to import guest swings:", error);
+      }
+
+      const { data, error } = await supabase
+        .from("swings")
+        .select("id, created_at, shot_type, overall_score, categories, top_priority, drill_recommendation")
+        .order("created_at", { ascending: false })
+        .limit(MAX_SWINGS);
+
+      if (error) console.error("Failed to load swing history:", error);
+      if (!cancelled && data) setHistory(data.map(fromRow));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading]);
+
+  // The analyze API already saves signed-in users' swings, so this only updates local state
+  // (and localStorage for guests).
   const saveSwing = (analysis: SwingAnalysis) => {
+    const timestamp = Date.now();
     const newSwing: SavedSwing = {
-      id: `swing_${Date.now()}`,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      timestamp: Date.now(),
+      id: `swing_${timestamp}`,
+      date: formatDate(timestamp),
+      timestamp,
       shot_type: analysis.shot_type,
       overall_score: analysis.overall_score,
       categories: analysis.categories,
@@ -46,10 +124,12 @@ export function useSwingHistory() {
 
     setHistory((prev) => {
       const updated = [newSwing, ...prev].slice(0, MAX_SWINGS);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch {
-        console.error("Failed to save swing");
+      if (!user) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          console.error("Failed to save swing");
+        }
       }
       return updated;
     });
@@ -57,8 +137,16 @@ export function useSwingHistory() {
     return newSwing.id;
   };
 
-  const clearHistory = () => {
-    localStorage.removeItem(STORAGE_KEY);
+  const clearHistory = async () => {
+    if (user) {
+      const { error } = await createClient().from("swings").delete().eq("user_id", user.id);
+      if (error) {
+        console.error("Failed to clear history:", error);
+        return;
+      }
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     setHistory([]);
   };
 
