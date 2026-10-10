@@ -42,7 +42,7 @@ export default function UploadPage() {
   const [freeScanUsed, setFreeScanUsed] = useState(false);
 
   const { user, loading: authLoading } = useUser();
-  const { history, saveSwing, clearHistory } = useSwingHistory(user, authLoading);
+  const { history, saveSwing, deleteSwing, clearHistory } = useSwingHistory(user, authLoading);
 
   useEffect(() => {
     try {
@@ -236,7 +236,7 @@ export default function UploadPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {activeTab === "history" ? (
-          <SwingHistory history={history} onClear={clearHistory} />
+          <SwingHistory history={history} onClear={clearHistory} onDelete={deleteSwing} />
         ) : (
           <div className="grid lg:grid-cols-2 gap-8">
             {/* LEFT COLUMN - Upload */}

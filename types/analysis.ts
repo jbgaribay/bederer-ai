@@ -16,4 +16,5 @@ export interface AnalysisCategory {
     top_priority: string;
     drill_recommendation: string;
     frames?: string[]; // Base64 encoded frame images
+    swing_id?: string; // Saved row id in public.swings (signed-in users only)
   }

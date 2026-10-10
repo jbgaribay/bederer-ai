@@ -16,9 +16,10 @@ import { SavedSwing } from "@/hooks/useSwingHistory";
 interface SwingHistoryProps {
   history: SavedSwing[];
   onClear: () => void;
+  onDelete: (id: string) => void;
 }
 
-export default function SwingHistory({ history, onClear }: SwingHistoryProps) {
+export default function SwingHistory({ history, onClear, onDelete }: SwingHistoryProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const getScoreColor = (score: number) => {
@@ -224,6 +225,19 @@ export default function SwingHistory({ history, onClear }: SwingHistoryProps) {
                      Top Priority
                   </div>
                   <p className="text-sm text-green-900">{swing.top_priority}</p>
+                </div>
+
+                <div className="text-right">
+                  <button
+                    onClick={() => {
+                      if (confirm("Delete this swing? This cannot be undone.")) {
+                        onDelete(swing.id);
+                      }
+                    }}
+                    className="text-sm font-bold text-gray-500 hover:text-red-700 underline underline-offset-4"
+                  >
+                    Delete swing
+                  </button>
                 </div>
               </div>
             )}

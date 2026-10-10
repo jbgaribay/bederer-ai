@@ -118,7 +118,8 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
   const saveSwing = (analysis: SwingAnalysis) => {
     const timestamp = Date.now();
     const newSwing: SavedSwing = {
-      id: `swing_${timestamp}`,
+      // Signed-in swings use the saved row's id so they can be deleted later
+      id: analysis.swing_id ?? `swing_${timestamp}`,
       date: formatDate(timestamp),
       timestamp,
       shot_type: analysis.shot_type,
@@ -156,5 +157,29 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
     setHistory([]);
   };
 
-  return { history, saveSwing, clearHistory };
+  const deleteSwing = async (id: string) => {
+    if (userId) {
+      // Local-only ids (swing_<timestamp>) mean the server save failed; nothing to delete there
+      if (!id.startsWith("swing_")) {
+        const { error } = await createClient().from("swings").delete().eq("id", id);
+        if (error) {
+          console.error("Failed to delete swing:", error);
+          return;
+        }
+      }
+      setHistory((prev) => prev.filter((s) => s.id !== id));
+    } else {
+      setHistory((prev) => {
+        const updated = prev.filter((s) => s.id !== id);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          console.error("Failed to delete swing");
+        }
+        return updated;
+      });
+    }
+  };
+
+  return { history, saveSwing, deleteSwing, clearHistory };
 }

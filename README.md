@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bederer AI
 
-## Getting Started
+An AI tennis coach. Upload a short clip of your swing and get frame-by-frame coaching feedback: scores for stance, backswing, contact, follow-through, and footwork, the reference frame behind each score, a top priority, and a drill.
 
-First, run the development server:
+Guests get one free analysis. Signed-in users get unlimited scans, a saved swing history with a progress chart, and a profile (name, username, UTR, USTA level).
+
+## Stack
+
+- **Next.js 16** (App Router), React, Tailwind CSS
+- **Supabase** for auth (email and password) and Postgres (`profiles`, `swings`)
+- **Claude API** (`@anthropic-ai/sdk`) to analyze the frames, with structured JSON output
+- **ffmpeg** (via `fluent-ffmpeg`) to pull 6 key frames from each video
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 22+
+- ffmpeg on your `PATH` (`brew install ffmpeg` on macOS)
+- A Supabase project and an Anthropic API key
+
+### Environment variables
+
+Create `.env.local` in the project root:
+
+| Variable | What it is |
+|---|---|
+| `ANTHROPIC_API_KEY` | Anthropic API key, used server-side only |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable key |
+| `NEXT_PUBLIC_SITE_URL` | Optional. The public site URL, used for link-preview images. Falls back to Vercel's production URL, then `http://localhost:3000`. |
+
+### Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Migrations live in `supabase/migrations/`:
 
-## Learn More
+- `create_swings`: the swing history table, with RLS so users only see their own swings
+- `tighten_swings_grants`: removes the default anon/authenticated grants
+- `create_profiles`: player profiles, the sign-up trigger that creates them, and the `username_available` check
 
-To learn more about Next.js, take a look at the following resources:
+In Supabase Auth, add `http://localhost:3000/auth/callback` (and your production `/auth/callback` URL) to the redirect URLs so email confirmation links work.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Admin accounts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Admin is stored in `app_metadata`, which users can't change. To make an account an admin, run this in the Supabase SQL editor, then sign out and back in:
 
-## Deploy on Vercel
+```sql
+update auth.users
+set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'
+where email = 'you@example.com';
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Branches
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `dev`: day-to-day work
+- `develop`: production. Merge `dev` into `develop` to release.
