@@ -32,10 +32,9 @@ export default function HeaderAuth() {
       <div className="flex items-center gap-3 text-sm">
         {user ? (
           <>
-            <span className="text-green-100 font-semibold truncate max-w-[9rem] sm:max-w-[14rem]">
-              <span className="sm:hidden">Hi, </span>
-              <span className="hidden sm:inline">Hello, </span>
-              <span className="text-white">{name}</span>
+            {/* Hidden on phones, where the nav links need the room */}
+            <span className="hidden sm:inline text-green-100 font-semibold truncate max-w-[14rem]">
+              Hello, <span className="text-white">{name}</span>
             </span>
             <Link
               href="/profile"
