@@ -27,7 +27,6 @@ export default function SiteHeader() {
           href="/"
           className="col-span-2 sm:col-span-1 sm:col-start-2 sm:row-start-1 justify-self-center text-2xl font-black flex items-center gap-2"
         >
-          <span>🎾</span>
           Bederer AI
         </Link>
 

@@ -12,7 +12,6 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
     <div className="bg-white rounded-xl shadow-2xl p-8 space-y-8 border-4 border-green-600">
       {/* Header */}
       <div className="text-center border-b-4 border-green-200 pb-6">
-        <div className="inline-block mb-4 text-4xl">🎾</div>
         <h2 className="text-3xl font-black text-gray-900 mb-2">
           Your Coaching Report
         </h2>

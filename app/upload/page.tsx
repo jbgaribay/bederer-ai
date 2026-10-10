@@ -274,7 +274,6 @@ export default function UploadPage() {
 
                       {isDragOver ? (
                         <>
-                          <div className="text-5xl mb-3">🎯</div>
                           <p className="text-green-700 font-black text-lg">Drop it!</p>
                         </>
                       ) : selectedFile && !fileError ? (
@@ -304,7 +303,6 @@ export default function UploadPage() {
                     {/* File validation error */}
                     {fileError && (
                       <div className="mt-3 bg-red-50 border-2 border-red-300 text-red-800 px-4 py-3 rounded-lg text-sm font-medium flex items-start gap-2">
-                        <span className="text-lg leading-none mt-0.5">⚠️</span>
                         <span>{fileError}</span>
                       </div>
                     )}
@@ -379,7 +377,6 @@ export default function UploadPage() {
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
                         <span>Analyzing Your Swing...</span>
-                        <span className="text-2xl animate-bounce">🎾</span>
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
@@ -392,7 +389,6 @@ export default function UploadPage() {
                   {/* Saved confirmation */}
                   {savedConfirm && (
                     <div className="bg-green-50 border-2 border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
-                      <span>✅</span>
                       <span>Swing saved to your history!</span>
                     </div>
                   )}
@@ -401,7 +397,6 @@ export default function UploadPage() {
                   {error && (
                     <div className="bg-red-50 border-4 border-red-300 text-red-800 px-6 py-4 rounded-lg font-medium">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">⚠️</span>
                         <span>{error}</span>
                       </div>
                     </div>
@@ -416,7 +411,6 @@ export default function UploadPage() {
                 /* Loading Steps Panel */
                 <div className="bg-white rounded-xl shadow-2xl p-10 border-4 border-green-600">
                   <div className="text-center mb-8">
-                    <div className="text-5xl mb-3 animate-bounce">🎾</div>
                     <h3 className="text-2xl font-black text-gray-900">
                       Coaching in Progress
                     </h3>
@@ -496,7 +490,6 @@ export default function UploadPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-2xl p-12 border-4 border-dashed border-green-300 text-center">
-                  <div className="text-6xl mb-4">🎾</div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     Your Coaching Report Will Appear Here
                   </h3>
