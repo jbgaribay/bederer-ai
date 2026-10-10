@@ -55,7 +55,6 @@ export default function SwingHistory({ history, onClear }: SwingHistoryProps) {
   if (history.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-2xl p-12 border-4 border-dashed border-green-300 text-center">
-        <div className="text-6xl mb-4">📈</div>
         <h3 className="text-2xl font-bold text-gray-900 mb-2">No Swings Yet</h3>
         <p className="text-gray-600">
           Analyze your first swing and it'll appear here automatically.
