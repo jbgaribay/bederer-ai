@@ -109,7 +109,6 @@ export default function AuthModal({
 
         {checkEmail ? (
           <div className="text-center">
-            <div className="text-5xl mb-4">📬</div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Check your email</h2>
             <p className="text-gray-600">
               We sent a confirmation link to <span className="font-bold">{email}</span>.
@@ -119,7 +118,6 @@ export default function AuthModal({
         ) : (
           <>
             <div className="text-center mb-6">
-              <div className="text-5xl mb-3">🎾</div>
               <h2 className="text-2xl font-black text-gray-900 mb-2">
                 {reason === "limit"
                   ? "Nice swing! Want more feedback?"
