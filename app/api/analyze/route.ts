@@ -6,6 +6,7 @@ import path from "path";
 import { extractFrames, cleanupVideo } from "@/lib/ffmpeg";
 import { analyzeSwing } from "@/lib/ai";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/auth";
 
 // Set after a guest's free scan; guests with this cookie must sign up to keep scanning.
 const FREE_SCAN_COOKIE = "bederer_free_scan_used";
@@ -15,8 +16,10 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: claimsData } = await supabase.auth.getClaims();
     const userId = claimsData?.claims?.sub ?? null;
+    // Admins skip every scan limit (signed-in accounts are currently unlimited anyway)
+    const admin = isAdmin(claimsData?.claims);
 
-    if (!userId && request.cookies.get(FREE_SCAN_COOKIE)) {
+    if (!userId && !admin && request.cookies.get(FREE_SCAN_COOKIE)) {
       return NextResponse.json(
         { error: "Create a free account to keep analyzing swings.", code: "SIGNUP_REQUIRED" },
         { status: 403 }

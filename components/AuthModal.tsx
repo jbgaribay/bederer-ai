@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { USERNAME_PATTERN, USTA_LEVELS } from "@/types/profile";
+
+const inputClass =
+  "w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-green-500 focus:outline-none";
 
 interface AuthModalProps {
   open: boolean;
@@ -20,6 +24,10 @@ export default function AuthModal({
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [username, setUsername] = useState("");
+  const [utr, setUtr] = useState("");
+  const [ustaLevel, setUstaLevel] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -44,11 +52,28 @@ export default function AuthModal({
     const supabase = createClient();
 
     if (mode === "signup") {
+      // A taken username would otherwise fail sign-up with a generic database error
+      const { data: available, error: checkError } = await supabase.rpc("username_available", {
+        name: username,
+      });
+      if (checkError || !available) {
+        setError(checkError ? checkError.message : "That username is taken. Try another one.");
+        setSubmitting(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback?next=/upload`,
+          // Copied into public.profiles by the on_auth_user_created trigger
+          data: {
+            first_name: firstName.trim(),
+            username,
+            utr: utr || null,
+            usta_level: ustaLevel || null,
+          },
         },
       });
       if (error) setError(error.message);
@@ -71,7 +96,7 @@ export default function AuthModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border-4 border-green-600 p-8"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-2xl border-4 border-green-600 p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -118,6 +143,59 @@ export default function AuthModal({
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "signup" && (
+                <>
+                  <input
+                    type="text"
+                    required
+                    maxLength={50}
+                    autoComplete="given-name"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={inputClass}
+                  />
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      pattern={USERNAME_PATTERN}
+                      autoComplete="username"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                      className={inputClass}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">3–20 letters, numbers, or _</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      max={16.5}
+                      step={0.01}
+                      inputMode="decimal"
+                      placeholder="UTR (optional)"
+                      value={utr}
+                      onChange={(e) => setUtr(e.target.value)}
+                      className={inputClass}
+                    />
+                    <select
+                      value={ustaLevel}
+                      onChange={(e) => setUstaLevel(e.target.value)}
+                      aria-label="USTA level"
+                      className={`${inputClass} ${ustaLevel ? "" : "text-gray-400"}`}
+                    >
+                      <option value="">USTA (optional)</option>
+                      {USTA_LEVELS.map((level) => (
+                        <option key={level} value={level} className="text-gray-900">
+                          {level}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
               <input
                 type="email"
                 required
@@ -125,7 +203,7 @@ export default function AuthModal({
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-green-500 focus:outline-none"
+                className={inputClass}
               />
               <input
                 type="password"
@@ -135,7 +213,7 @@ export default function AuthModal({
                 placeholder="Password (6+ characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-green-500 focus:outline-none"
+                className={inputClass}
               />
 
               {error && (
