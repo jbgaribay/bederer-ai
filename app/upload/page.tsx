@@ -9,7 +9,6 @@ import SwingHistory from "@/components/SwingHistory";
 import { useSwingHistory } from "@/hooks/useSwingHistory";
 import { useUser } from "@/hooks/useUser";
 import AuthModal from "@/components/AuthModal";
-import Link from "next/link";
 
 const LOADING_STEPS = [
   { label: "Uploading video", duration: 3000 },
@@ -42,7 +41,7 @@ export default function UploadPage() {
   });
   const [freeScanUsed, setFreeScanUsed] = useState(false);
 
-  const { user, loading: authLoading, signOut } = useUser();
+  const { user, loading: authLoading } = useUser();
   const { history, saveSwing, clearHistory } = useSwingHistory(user, authLoading);
 
   useEffect(() => {
@@ -184,59 +183,17 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-gray-50 to-green-100">
+    <div className="pt-8">
       <AuthModal
         open={authModal.open}
         reason={authModal.reason}
         initialMode={authModal.reason === "manual" ? "signin" : "signup"}
         onClose={() => setAuthModal((m) => ({ ...m, open: false }))}
       />
-      {/* Header */}
-      <div className="relative bg-gradient-to-r from-green-800 to-green-700 text-white py-8 mb-8 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-white"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white"></div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-start justify-between gap-4">
-          <div>
-            <Link
-              href="/"
-              className="text-yellow-300 hover:text-yellow-200 text-sm mb-2 inline-block"
-            >
-              ← Back to Home
-            </Link>
-            <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
-              <span className="text-3xl">🎾</span>
-              Bederer AI
-            </h1>
-            <p className="text-green-100">
-              Upload your swing and get instant AI coaching feedback
-            </p>
-          </div>
-
-          {!authLoading && (
-            <div className="flex flex-col items-end gap-2 text-sm">
-              {user ? (
-                <>
-                  <span className="text-green-100 truncate max-w-[12rem]">{user.email}</span>
-                  <button
-                    onClick={signOut}
-                    className="text-yellow-300 hover:text-yellow-200 font-semibold"
-                  >
-                    Sign out
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setAuthModal({ open: true, reason: "manual" })}
-                  className="bg-yellow-400 text-green-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 border-2 border-yellow-500"
-                >
-                  Sign in
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+      {/* Page heading */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <h1 className="text-3xl font-black text-gray-900">Analyze your swing</h1>
+        <p className="text-gray-600 mt-1">Upload your swing and get instant AI coaching feedback</p>
       </div>
 
       {/* Tab Switcher */}

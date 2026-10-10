@@ -1,0 +1,48 @@
+{
+  "overall_score": 8.2,
+  "shot_type": "forehand",
+  "categories": [
+    {
+      "name": "Stance & Preparation",
+      "score": 9,
+      "severity": "good",
+      "observation": "The player starts in a balanced ready position with soft knees, the racket held in front, and the shoulders already starting to rotate as the ball is read.",
+      "tip": "Keep the early shoulder turn, and add a small split-step timed to the opponent's contact so the first move toward the ball is even more explosive.",
+      "frameIndex": 0
+    },
+    {
+      "name": "Backswing & Unit Turn",
+      "score": 9,
+      "severity": "good",
+      "observation": "The shoulders and hips turn together in a compact unit turn, the non-hitting arm stays out in front for balance, and the racket loops back smoothly to a loaded position with the hitting arm extended behind the body.",
+      "tip": "Keep the non-hitting hand tracking the ball for a split second longer before it pulls in, so the shoulders stay coiled until the forward swing starts.",
+      "frameIndex": 1
+    },
+    {
+      "name": "Contact Point",
+      "score": 8,
+      "severity": "good",
+      "observation": "The head stays quiet with the eyes on the contact zone, and the ball is struck out in front of the torso with a stable, near-vertical racket face, though the arm looks slightly bent and close to the body.",
+      "tip": "Aim to make contact about an arm's length from the body with a slightly longer hitting arm, so the racket head travels through the ball for more depth and margin.",
+      "frameIndex": 2
+    },
+    {
+      "name": "Follow-Through",
+      "score": 7,
+      "severity": "good",
+      "observation": "The sequence ends right at contact, so the finish can't be seen, but the non-hitting arm is spread out to stabilize the rotation and the head stays still through the hitting zone.",
+      "tip": "Finish with the racket wrapping over the opposite shoulder, and hold that finish for one second in practice to check that the swing decelerates fully and in balance.",
+      "frameIndex": 3
+    },
+    {
+      "name": "Footwork & Balance",
+      "score": 8,
+      "severity": "good",
+      "observation": "A wide, athletic open stance with the weight loaded onto the back leg and then driven into the shot keeps the body stable and the hips free to rotate.",
+      "tip": "Push harder off the outside (back) leg through contact, so the hips lead the swing and the weight moves forward into the ball rather than staying planted.",
+      "frameIndex": 5
+    }
+  ],
+  "top_priority": "Extend the hitting arm slightly more at contact, so the ball is struck further in front and away from the body, with the weight driving forward into the shot.",
+  "drill_recommendation": "Cone Extension Drill: place a cone or ball can about an arm's length in front of your lead hip along the line of the shot. Shadow-swing and then hit 20 feeds from a partner, trying to make contact just beyond the cone with the arm extended and the hips rotating through. Finish each swing over the opposite shoulder and hold the finish for one second to confirm balance."
+}
