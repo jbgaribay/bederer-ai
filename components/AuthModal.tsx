@@ -8,15 +8,31 @@ interface AuthModalProps {
   onClose: () => void;
   // "limit" = shown after the guest's free scan is used up
   reason?: "limit" | "manual";
+  initialMode?: "signup" | "signin";
 }
 
-export default function AuthModal({ open, onClose, reason = "manual" }: AuthModalProps) {
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+export default function AuthModal({
+  open,
+  onClose,
+  reason = "manual",
+  initialMode = "signup",
+}: AuthModalProps) {
+  const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [wasOpen, setWasOpen] = useState(open);
+
+  // Start on the requested form each time the modal opens
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setMode(initialMode);
+      setError(null);
+    }
+  }
 
   if (!open) return null;
 

@@ -188,6 +188,7 @@ export default function UploadPage() {
       <AuthModal
         open={authModal.open}
         reason={authModal.reason}
+        initialMode={authModal.reason === "manual" ? "signin" : "signup"}
         onClose={() => setAuthModal((m) => ({ ...m, open: false }))}
       />
       {/* Header */}

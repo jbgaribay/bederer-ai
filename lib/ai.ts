@@ -7,6 +7,33 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Structured output schema so the response is always parseable JSON
+const categorySchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    score: { type: "number" },
+    severity: { type: "string", enum: ["good", "needs_work", "critical"] },
+    observation: { type: "string" },
+    tip: { type: "string" },
+  },
+  required: ["name", "score", "severity", "observation", "tip"],
+  additionalProperties: false,
+};
+
+const analysisSchema = {
+  type: "object",
+  properties: {
+    overall_score: { type: "number" },
+    shot_type: { type: "string" },
+    categories: { type: "array", items: categorySchema },
+    top_priority: { type: "string" },
+    drill_recommendation: { type: "string" },
+  },
+  required: ["overall_score", "shot_type", "categories", "top_priority", "drill_recommendation"],
+  additionalProperties: false,
+};
+
 export async function analyzeSwing(
   frameBase64Images: string[],
   shotType: string = "forehand"
@@ -85,6 +112,7 @@ Be specific and avoid generic advice like "practice more" or "watch your form."`
     const response = await anthropic.messages.create({
       model: "claude-sonnet-5-5",
       max_tokens: 16000,
+      output_config: { format: { type: "json_schema", schema: analysisSchema } },
       system: systemPrompt,
       messages: [
         {

@@ -1,6 +1,7 @@
 // app/page.tsx
 
 import Link from "next/link";
+import HeaderAuth from "@/components/HeaderAuth";
 
 export default function HomePage() {
   return (
@@ -14,6 +15,10 @@ export default function HomePage() {
           <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-white"></div>
           <div className="absolute top-1/3 left-0 right-0 h-px bg-white"></div>
           <div className="absolute top-2/3 left-0 right-0 h-px bg-white"></div>
+        </div>
+
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
+          <HeaderAuth />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
