@@ -6,13 +6,14 @@ import { useState, useEffect, useRef } from "react";
 import { SwingAnalysis } from "@/types/analysis";
 import CoachingReport from "@/components/CoachingReport";
 import SwingHistory from "@/components/SwingHistory";
-import { useSwingHistory } from "@/hooks/useSwingHistory";
+import { loadFrameUrls, useSwingHistory, type SavedSwing } from "@/hooks/useSwingHistory";
 import { useUser } from "@/hooks/useUser";
 import AuthModal from "@/components/AuthModal";
+import { extractFrames } from "@/lib/extract-frames";
 
 const LOADING_STEPS = [
-  { label: "Uploading video", duration: 3000 },
-  { label: "Extracting frames", duration: 8000 },
+  { label: "Reading your video", duration: 2000 },
+  { label: "Pulling key frames", duration: 3000 },
   { label: "AI analyzing technique", duration: 15000 },
   { label: "Generating your report", duration: 99999 }, // stays until done
 ];
@@ -26,6 +27,9 @@ export default function UploadPage() {
   const [shotType, setShotType] = useState<string>("forehand");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<SwingAnalysis | null>(null);
+  // Date of the saved swing being shown, or null when the report is from a fresh scan
+  const [viewingSavedDate, setViewingSavedDate] = useState<string | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analyze" | "history">("analyze");
   const [savedConfirm, setSavedConfirm] = useState(false);
@@ -42,7 +46,24 @@ export default function UploadPage() {
   const [freeScanUsed, setFreeScanUsed] = useState(false);
 
   const { user, loading: authLoading } = useUser();
-  const { history, saveSwing, clearHistory } = useSwingHistory(user, authLoading);
+  const { history, saveSwing, deleteSwing, clearHistory } = useSwingHistory(user, authLoading);
+
+  // Reopen a saved swing in the report view, with its frames when they were saved
+  const handleViewSwing = async (swing: SavedSwing) => {
+    const frames = await loadFrameUrls(swing);
+    setAnalysis({
+      overall_score: swing.overall_score,
+      shot_type: swing.shot_type,
+      categories: swing.categories,
+      top_priority: swing.top_priority,
+      drill_recommendation: swing.drill_recommendation,
+      frames,
+    });
+    setViewingSavedDate(swing.date);
+    setError(null);
+    setActiveTab("analyze");
+    requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
 
   useEffect(() => {
     try {
@@ -104,6 +125,7 @@ export default function UploadPage() {
     setSelectedFile(file);
     setVideoPreview(URL.createObjectURL(file));
     setAnalysis(null);
+    setViewingSavedDate(null);
     setError(null);
   };
 
@@ -145,13 +167,13 @@ export default function UploadPage() {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("video", selectedFile);
-      formData.append("shotType", shotType);
+      // Frames are pulled here in the browser, so only ~300 KB of JPEGs is uploaded
+      const frames = await extractFrames(selectedFile, 6);
 
       const response = await fetch("/api/analyze", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frames, shotType }),
       });
 
       if (!response.ok) {
@@ -166,6 +188,7 @@ export default function UploadPage() {
 
       const result: SwingAnalysis = await response.json();
       setAnalysis(result);
+      setViewingSavedDate(null);
       saveSwing(result);
       if (!user) markFreeScanUsed();
       setSavedConfirm(true);
@@ -236,7 +259,12 @@ export default function UploadPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {activeTab === "history" ? (
-          <SwingHistory history={history} onClear={clearHistory} />
+          <SwingHistory
+            history={history}
+            onClear={clearHistory}
+            onDelete={deleteSwing}
+            onView={handleViewSwing}
+          />
         ) : (
           <div className="grid lg:grid-cols-2 gap-8">
             {/* LEFT COLUMN - Upload */}
@@ -469,8 +497,13 @@ export default function UploadPage() {
                   </div>
                 </div>
               ) : analysis ? (
-                <div className="space-y-6">
-                  {!user && !authLoading && (
+                <div ref={reportRef} className="space-y-6 scroll-mt-6">
+                  {viewingSavedDate && (
+                    <div className="bg-white border-2 border-green-300 rounded-lg px-4 py-3 text-sm font-semibold text-green-900">
+                      Viewing a saved swing from {viewingSavedDate}
+                    </div>
+                  )}
+                  {!user && !authLoading && !viewingSavedDate && (
                     <div className="bg-yellow-50 border-4 border-yellow-400 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                       <div>
                         <p className="font-black text-green-900 text-lg">That was your free analysis</p>

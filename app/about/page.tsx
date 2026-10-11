@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About · Bederer AI",
+  title: "About",
   description: "Why Bederer AI exists and who's building it.",
 };
 

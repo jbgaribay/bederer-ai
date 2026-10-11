@@ -13,9 +13,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const description =
+  "Upload a short clip of your tennis swing and get frame-by-frame AI coaching feedback in about 30 seconds.";
+
+// Absolute base for link-preview image URLs: set NEXT_PUBLIC_SITE_URL in production
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
+
+const previewImage = {
+  url: "/how-it-works/frame-3.jpg",
+  width: 640,
+  height: 548,
+  alt: "A forehand swing analyzed by Bederer AI",
+};
+
 export const metadata: Metadata = {
-  title: "Bederer AI",
-  description: "Upload your tennis swing and get instant AI coaching feedback.",
+  metadataBase: new URL(siteUrl),
+  title: { default: "Bederer AI", template: "%s · Bederer AI" },
+  description,
+  openGraph: {
+    title: "Bederer AI",
+    description,
+    siteName: "Bederer AI",
+    type: "website",
+    images: [previewImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bederer AI",
+    description,
+    images: [previewImage.url],
+  },
 };
 
 export default function RootLayout({
