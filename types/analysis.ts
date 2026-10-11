@@ -17,4 +17,5 @@ export interface AnalysisCategory {
     drill_recommendation: string;
     frames?: string[]; // Base64 encoded frame images
     swing_id?: string; // Saved row id in public.swings (signed-in users only)
+    frame_paths?: (string | null)[] | null; // Storage paths of the saved frames (signed-in users only)
   }

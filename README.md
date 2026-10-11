@@ -46,6 +46,7 @@ Migrations live in `supabase/migrations/`:
 - `create_swings`: the swing history table, with RLS so users only see their own swings
 - `tighten_swings_grants`: removes the default anon/authenticated grants
 - `create_profiles`: player profiles, the sign-up trigger that creates them, and the `username_available` check
+- `swing_frames`: a private `swing-frames` Storage bucket for each signed-in swing's 6 reference frames (`{user_id}/{swing_id}/frame-N.jpg`, readable only by that user), plus `swings.frame_paths`
 
 In Supabase Auth, add `http://localhost:3000/auth/callback` (and your production `/auth/callback` URL) to the redirect URLs so email confirmation links work.
 
