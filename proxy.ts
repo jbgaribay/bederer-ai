@@ -9,7 +9,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip static assets and images
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Skip static assets and images, and the analyze route, which reads (and refreshes) the
+    // session itself. Requests through the proxy also have their body capped at 10 MB.
+    "/((?!_next/static|_next/image|favicon.ico|api/analyze|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

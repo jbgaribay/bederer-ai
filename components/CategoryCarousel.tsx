@@ -8,9 +8,12 @@ import CategoryCard from "@/components/CategoryCard";
 
 interface CategoryCarouselProps {
   categories: AnalysisCategory[];
-  // Base64 JPEG frames from the analysis, indexed by category.frameIndex
+  // Frames indexed by category.frameIndex: base64 JPEG from a fresh scan, or a URL for a saved swing
   frames?: string[];
 }
+
+const frameSrc = (frame: string) =>
+  frame.startsWith("http") || frame.startsWith("data:") ? frame : `data:image/jpeg;base64,${frame}`;
 
 // Shows two cards at a time (one on phones); the arrows move one card per click.
 export default function CategoryCarousel({ categories, frames }: CategoryCarouselProps) {
@@ -113,7 +116,7 @@ export default function CategoryCarousel({ categories, frames }: CategoryCarouse
               >
                 <CategoryCard
                   category={category}
-                  frame={frame ? `data:image/jpeg;base64,${frame}` : undefined}
+                  frame={frame ? frameSrc(frame) : undefined}
                 />
               </div>
             );

@@ -2,6 +2,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { SwingAnalysis } from "@/types/analysis";
+import { buildPlayerContextBlock, type PlayerContext } from "@/lib/player-context";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -36,7 +37,9 @@ const analysisSchema = {
 
 export async function analyzeSwing(
   frameBase64Images: string[],
-  shotType: string = "forehand"
+  shotType: string = "forehand",
+  // Signed-in players: their level and recent swings, so feedback fits them
+  context?: PlayerContext
 ): Promise<SwingAnalysis> {
   const systemPrompt = `You are an expert tennis coach with 20 years of experience coaching players from beginners to professionals. You specialize in biomechanical analysis of tennis strokes and provide clear, actionable feedback.`;
 
@@ -106,7 +109,7 @@ Return your response as a JSON object with this exact structure:
   "drill_recommendation": "<string>"
 }
 
-Be specific and avoid generic advice like "practice more" or "watch your form."`;
+Be specific and avoid generic advice like "practice more" or "watch your form."${buildPlayerContextBlock(context, shotType)}`;
 
   try {
     const response = await anthropic.messages.create({
