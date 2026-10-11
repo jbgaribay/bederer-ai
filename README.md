@@ -9,14 +9,13 @@ Guests get one free analysis. Signed-in users get unlimited scans, a saved swing
 - **Next.js 16** (App Router), React, Tailwind CSS
 - **Supabase** for auth (email and password) and Postgres (`profiles`, `swings`)
 - **Claude API** (`@anthropic-ai/sdk`) to analyze the frames, with structured JSON output
-- **ffmpeg** (via `fluent-ffmpeg`) to pull 6 key frames from each video
+- Frames are pulled **in the browser** (`lib/extract-frames.ts`): 6 evenly spaced frames, up to 960px wide, so only about 300 KB is uploaded per scan instead of the whole video
 
 ## Getting started
 
 ### Prerequisites
 
 - Node.js 22+
-- ffmpeg on your `PATH` (`brew install ffmpeg` on macOS)
 - A Supabase project and an Anthropic API key
 
 ### Environment variables
@@ -59,6 +58,14 @@ update auth.users
 set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'
 where email = 'you@example.com';
 ```
+
+## Deploying (Vercel)
+
+1. Import the GitHub repo in Vercel and set the **production branch** to `develop`.
+2. Add the environment variables above. Set `NEXT_PUBLIC_SITE_URL` to the live URL, e.g. `https://bederer.ai`.
+3. In Supabase → Authentication → URL Configuration, set the **Site URL** to the live URL and add `https://<your-domain>/auth/callback` to the redirect URLs.
+
+Uploads stay small (browser-extracted frames), so Vercel's 4.5 MB request limit isn't an issue. The analyze route allows up to 60 seconds.
 
 ## Branches
 

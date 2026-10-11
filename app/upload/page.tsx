@@ -9,10 +9,11 @@ import SwingHistory from "@/components/SwingHistory";
 import { loadFrameUrls, useSwingHistory, type SavedSwing } from "@/hooks/useSwingHistory";
 import { useUser } from "@/hooks/useUser";
 import AuthModal from "@/components/AuthModal";
+import { extractFrames } from "@/lib/extract-frames";
 
 const LOADING_STEPS = [
-  { label: "Uploading video", duration: 3000 },
-  { label: "Extracting frames", duration: 8000 },
+  { label: "Reading your video", duration: 2000 },
+  { label: "Pulling key frames", duration: 3000 },
   { label: "AI analyzing technique", duration: 15000 },
   { label: "Generating your report", duration: 99999 }, // stays until done
 ];
@@ -166,13 +167,13 @@ export default function UploadPage() {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("video", selectedFile);
-      formData.append("shotType", shotType);
+      // Frames are pulled here in the browser, so only ~300 KB of JPEGs is uploaded
+      const frames = await extractFrames(selectedFile, 6);
 
       const response = await fetch("/api/analyze", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frames, shotType }),
       });
 
       if (!response.ok) {

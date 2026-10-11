@@ -1,10 +1,6 @@
 // app/api/analyze/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { mkdtemp, rm, writeFile } from "fs/promises";
-import os from "os";
-import path from "path";
-import { extractFrames } from "@/lib/ffmpeg";
 import { analyzeSwing } from "@/lib/ai";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth";
@@ -13,11 +9,31 @@ import { weakestCategory, type PlayerContext } from "@/lib/player-context";
 // Set after a guest's free scan; guests with this cookie must sign up to keep scanning.
 const FREE_SCAN_COOKIE = "bederer_free_scan_used";
 
-const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
-// Multipart framing around the file is small; allow a little slack over the video limit
-const MAX_REQUEST_BYTES = MAX_VIDEO_BYTES + 1024 * 1024;
+// The browser pulls the frames and sends ~300 KB of JPEGs (see lib/extract-frames.ts).
+// Stay under Vercel's 4.5 MB request limit.
+const FRAME_COUNT = 6;
+const MAX_FRAME_BYTES = 1.5 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
 const SHOT_TYPES = ["forehand", "backhand", "serve", "volley"];
 const SWING_FRAMES_BUCKET = "swing-frames";
+
+// Analysis can take ~10-30s; give the function room on Vercel
+export const maxDuration = 60;
+
+// Decodes and checks the uploaded frames; returns null if anything is off
+function parseFrames(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length !== FRAME_COUNT) return null;
+  const frames: string[] = [];
+  for (const frame of value) {
+    if (typeof frame !== "string") return null;
+    const bytes = Buffer.from(frame, "base64");
+    // JPEG files start with FF D8 FF
+    if (bytes.length === 0 || bytes.length > MAX_FRAME_BYTES) return null;
+    if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return null;
+    frames.push(bytes.toString("base64"));
+  }
+  return frames;
+}
 
 // The player's level and last few swings of this shot type. RLS limits both reads to their
 // own rows. Any failure just means generic feedback; it never fails the scan.
@@ -103,49 +119,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Reject oversized uploads before reading the body
+    // Reject oversized requests before reading the body
     if (Number(request.headers.get("content-length") ?? 0) > MAX_REQUEST_BYTES) {
-      return NextResponse.json({ error: "Video is too large (max 500 MB)." }, { status: 413 });
+      return NextResponse.json({ error: "Upload is too large." }, { status: 413 });
     }
 
-    const formData = await request.formData();
-    const file = formData.get("video");
-    const shotType = (formData.get("shotType") as string | null) || "forehand";
+    let body: { frames?: unknown; shotType?: unknown };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No video file provided" }, { status: 400 });
-    }
-    if (file.size > MAX_VIDEO_BYTES) {
-      return NextResponse.json({ error: "Video is too large (max 500 MB)." }, { status: 413 });
-    }
-    if (!file.type.startsWith("video/")) {
-      return NextResponse.json({ error: "Please upload a video file." }, { status: 415 });
+    const frames = parseFrames(body.frames);
+    const shotType = typeof body.shotType === "string" ? body.shotType : "forehand";
+    if (!frames) {
+      return NextResponse.json(
+        { error: "We couldn't read the frames from that video. Please try another clip." },
+        { status: 400 }
+      );
     }
     if (!SHOT_TYPES.includes(shotType)) {
       return NextResponse.json({ error: "Unknown shot type." }, { status: 400 });
     }
 
-    // Start loading the player's context now so it's ready by the time frames are extracted
-    const contextPromise = userId ? loadPlayerContext(supabase, userId, shotType) : Promise.resolve(undefined);
+    const context = userId ? await loadPlayerContext(supabase, userId, shotType) : undefined;
 
-    // Each scan gets its own temp folder, removed in the finally below even if the scan fails
-    const workDir = await mkdtemp(path.join(os.tmpdir(), "bederer-"));
-    let frames: string[];
-    let analysis: Awaited<ReturnType<typeof analyzeSwing>>;
-    try {
-      const videoPath = path.join(workDir, "video.mp4");
-      await writeFile(videoPath, Buffer.from(await file.arrayBuffer()));
-
-      console.log("Extracting frames...");
-      frames = await extractFrames(videoPath, 6);
-      console.log(`Extracted ${frames.length} frames`);
-
-      console.log("Analyzing swing with AI...");
-      analysis = await analyzeSwing(frames, shotType, await contextPromise);
-      console.log("Analysis complete");
-    } finally {
-      await rm(workDir, { recursive: true, force: true });
-    }
+    console.log("Analyzing swing with AI...");
+    const analysis = await analyzeSwing(frames, shotType, context);
+    console.log("Analysis complete");
 
     // Add frame index mapping to categories
     const categoriesWithFrames = analysis.categories.map((category, index) => {
