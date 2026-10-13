@@ -181,6 +181,7 @@ export async function POST(request: NextRequest) {
         categories: categoriesWithFrames,
         top_priority: analysis.top_priority,
         drill_recommendation: analysis.drill_recommendation,
+        drill: analysis.drill ?? null,
         frame_paths: framePaths,
       });
       if (insertError) console.error("Failed to save swing:", insertError);

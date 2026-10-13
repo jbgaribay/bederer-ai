@@ -9,6 +9,7 @@ import SwingHistory from "@/components/SwingHistory";
 import { loadFrameUrls, useSwingHistory, type SavedSwing } from "@/hooks/useSwingHistory";
 import { useUser } from "@/hooks/useUser";
 import AuthModal from "@/components/AuthModal";
+import DrillsList from "@/components/DrillsList";
 import { extractFrames } from "@/lib/extract-frames";
 
 const LOADING_STEPS = [
@@ -31,7 +32,7 @@ export default function UploadPage() {
   const [viewingSavedDate, setViewingSavedDate] = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"analyze" | "history">("analyze");
+  const [activeTab, setActiveTab] = useState<"analyze" | "history" | "drills">("analyze");
   const [savedConfirm, setSavedConfirm] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -57,6 +58,7 @@ export default function UploadPage() {
       categories: swing.categories,
       top_priority: swing.top_priority,
       drill_recommendation: swing.drill_recommendation,
+      drill: swing.drill,
       frames,
     });
     setViewingSavedDate(swing.date);
@@ -221,44 +223,54 @@ export default function UploadPage() {
 
       {/* Tab Switcher */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        <div className="flex gap-2 bg-white rounded-xl shadow p-1.5 border-2 border-green-200 w-fit">
-          <button
-            onClick={() => setActiveTab("analyze")}
-            className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${
-              activeTab === "analyze"
-                ? "bg-green-600 text-white shadow"
-                : "text-gray-600 hover:text-green-700 hover:bg-green-50"
-            }`}
-          >
-            Analyze Swing
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
-              activeTab === "history"
-                ? "bg-green-600 text-white shadow"
-                : "text-gray-600 hover:text-green-700 hover:bg-green-50"
-            }`}
-          >
-           My Swings
-            {history.length > 0 && (
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-black ${
-                  activeTab === "history"
-                    ? "bg-white text-green-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                {history.length}
-              </span>
-            )}
-          </button>
+        <div className="flex gap-1 sm:gap-2 bg-white rounded-xl shadow p-1.5 border-2 border-green-200 w-fit max-w-full">
+          {(
+            [
+              { id: "analyze", label: "Analyze Swing", count: 0 },
+              { id: "history", label: "My Swings", count: history.length },
+              {
+                id: "drills",
+                label: "Drills",
+                count: history.filter((swing) => swing.drill || swing.drill_recommendation).length,
+              },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 sm:px-6 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? "bg-green-600 text-white shadow"
+                  : "text-gray-600 hover:text-green-700 hover:bg-green-50"
+              }`}
+            >
+              {tab.id === "analyze" ? (
+                // "Analyze" on phones so all three tabs fit
+                <span>
+                  Analyze<span className="hidden sm:inline"> Swing</span>
+                </span>
+              ) : (
+                tab.label
+              )}
+              {tab.count > 0 && (
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-black ${
+                    activeTab === tab.id ? "bg-white text-green-700" : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        {activeTab === "history" ? (
+        {activeTab === "drills" ? (
+          <DrillsList history={history} onView={handleViewSwing} />
+        ) : activeTab === "history" ? (
           <SwingHistory
             history={history}
             onClear={clearHistory}

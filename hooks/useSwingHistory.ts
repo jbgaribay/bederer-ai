@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
-import { SwingAnalysis } from "@/types/analysis";
+import type { Drill, SwingAnalysis } from "@/types/analysis";
 import { createClient } from "@/lib/supabase/client";
 
 const STORAGE_KEY = "swingcoach_history";
+// Guests keep the last 10 in localStorage; signed-in users load more for the chart and Drills tab
 const MAX_SWINGS = 10;
+const MAX_REMOTE_SWINGS = 30;
 const SWING_FRAMES_BUCKET = "swing-frames";
 // Signed URLs for viewing saved frames last an hour
 const FRAME_URL_TTL_SECONDS = 60 * 60;
@@ -18,6 +20,7 @@ export interface SavedSwing {
   categories: SwingAnalysis["categories"];
   top_priority: string;
   drill_recommendation: string;
+  drill?: Drill | null;
   // Storage paths of the 6 frames, in order (signed-in swings saved after frames were added)
   frame_paths?: (string | null)[] | null;
 }
@@ -30,6 +33,7 @@ interface SwingRow {
   categories: SwingAnalysis["categories"];
   top_priority: string;
   drill_recommendation: string;
+  drill: Drill | null;
   frame_paths: (string | null)[] | null;
 }
 
@@ -51,6 +55,7 @@ const fromRow = (row: SwingRow): SavedSwing => {
     categories: row.categories,
     top_priority: row.top_priority,
     drill_recommendation: row.drill_recommendation,
+    drill: row.drill,
     frame_paths: row.frame_paths,
   };
 };
@@ -131,9 +136,9 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
 
       const { data, error } = await supabase
         .from("swings")
-        .select("id, created_at, shot_type, overall_score, categories, top_priority, drill_recommendation, frame_paths")
+        .select("id, created_at, shot_type, overall_score, categories, top_priority, drill_recommendation, drill, frame_paths")
         .order("created_at", { ascending: false })
-        .limit(MAX_SWINGS);
+        .limit(MAX_REMOTE_SWINGS);
 
       if (error) console.error("Failed to load swing history:", error);
       if (!cancelled && data) setHistory(data.map(fromRow));
@@ -158,11 +163,12 @@ export function useSwingHistory(user: User | null, authLoading: boolean) {
       categories: analysis.categories,
       top_priority: analysis.top_priority,
       drill_recommendation: analysis.drill_recommendation,
+      drill: analysis.drill,
       frame_paths: analysis.frame_paths,
     };
 
     setHistory((prev) => {
-      const updated = [newSwing, ...prev].slice(0, MAX_SWINGS);
+      const updated = [newSwing, ...prev].slice(0, userId ? MAX_REMOTE_SWINGS : MAX_SWINGS);
       if (!userId) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));

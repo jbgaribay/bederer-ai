@@ -2,6 +2,7 @@
 
 import { SwingAnalysis } from "@/types/analysis";
 import CategoryCarousel from "@/components/CategoryCarousel";
+import DrillDetails from "@/components/DrillDetails";
 
 interface CoachingReportProps {
   analysis: SwingAnalysis;
@@ -38,7 +39,9 @@ export default function CoachingReport({ analysis }: CoachingReportProps) {
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-600 rounded-xl p-4">
           <h3 className="text-base font-black text-blue-900 mb-1">Recommended Drill</h3>
-          <p className="text-blue-800 text-sm leading-snug">{analysis.drill_recommendation}</p>
+          <div className="text-blue-800">
+            <DrillDetails drill={analysis.drill} fallbackText={analysis.drill_recommendation} />
+          </div>
         </div>
       </div>
     </div>

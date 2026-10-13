@@ -1,7 +1,7 @@
 // lib/ai.ts
 
 import Anthropic from "@anthropic-ai/sdk";
-import { SwingAnalysis } from "@/types/analysis";
+import { CATEGORY_NAMES, type Drill, type SwingAnalysis } from "@/types/analysis";
 import { buildPlayerContextBlock, type PlayerContext } from "@/lib/player-context";
 
 const anthropic = new Anthropic({
@@ -22,6 +22,19 @@ const categorySchema = {
   additionalProperties: false,
 };
 
+const drillSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    focus: { type: "string", enum: [...CATEGORY_NAMES] },
+    steps: { type: "array", items: { type: "string" } },
+    reps: { type: "string" },
+    equipment: { type: "string" },
+  },
+  required: ["name", "focus", "steps", "reps", "equipment"],
+  additionalProperties: false,
+};
+
 const analysisSchema = {
   type: "object",
   properties: {
@@ -29,11 +42,16 @@ const analysisSchema = {
     shot_type: { type: "string" },
     categories: { type: "array", items: categorySchema },
     top_priority: { type: "string" },
-    drill_recommendation: { type: "string" },
+    drill: drillSchema,
   },
-  required: ["overall_score", "shot_type", "categories", "top_priority", "drill_recommendation"],
+  required: ["overall_score", "shot_type", "categories", "top_priority", "drill"],
   additionalProperties: false,
 };
+
+// Plain-text version kept in swings.drill_recommendation
+export function drillToText(drill: Drill): string {
+  return `${drill.name}: ${drill.steps.join(" ")} (${drill.reps})`;
+}
 
 export async function analyzeSwing(
   frameBase64Images: string[],
@@ -61,7 +79,12 @@ For each category, provide:
 Also provide:
 - An overall score (average of categories)
 - The single most important thing this player should work on (top_priority)
-- A specific drill recommendation based on their weaknesses
+- One drill that targets the top priority (their weakest area), with:
+  - name: a short, specific name (e.g. "Cone contact-point drill")
+  - focus: the category it works on, exactly one of the five names above
+  - steps: 2 to 5 short, imperative steps
+  - reps: how much to do (e.g. "3 sets of 10" or "5 minutes")
+  - equipment: what's needed (e.g. "None" or "Cones, a partner to feed")
 
 Return your response as a JSON object with this exact structure:
 
@@ -106,7 +129,13 @@ Return your response as a JSON object with this exact structure:
     }
   ],
   "top_priority": "<string>",
-  "drill_recommendation": "<string>"
+  "drill": {
+    "name": "<string>",
+    "focus": <one of the five category names>,
+    "steps": ["<string>", "..."],
+    "reps": "<string>",
+    "equipment": "<string>"
+  }
 }
 
 Be specific and avoid generic advice like "practice more" or "watch your form."${buildPlayerContextBlock(context, shotType)}`;
@@ -155,8 +184,8 @@ if (jsonText.startsWith("```json")) {
   jsonText = jsonText.replace(/^```\s*/, "").replace(/```\s*$/, "");
 }
 
-const analysis: SwingAnalysis = JSON.parse(jsonText);
-return analysis;
+const parsed = JSON.parse(jsonText) as Omit<SwingAnalysis, "drill_recommendation"> & { drill: Drill };
+return { ...parsed, drill_recommendation: drillToText(parsed.drill) };
   } catch (error) {
     console.error("Error analyzing swing:", error);
     throw new Error("Failed to analyze swing. Please try again.");
