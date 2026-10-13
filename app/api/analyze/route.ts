@@ -1,5 +1,6 @@
 // app/api/analyze/route.ts
 
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeSwing } from "@/lib/ai";
 import { createClient } from "@/lib/supabase/server";
@@ -16,6 +17,21 @@ const MAX_FRAME_BYTES = 1.5 * 1024 * 1024;
 const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
 const SHOT_TYPES = ["forehand", "backhand", "serve", "volley"];
 const SWING_FRAMES_BUCKET = "swing-frames";
+
+// Daily scan limits (rolling 24 hours). Admins skip both.
+// Guests: per IP address, on top of the one-free-scan cookie, so clearing cookies doesn't
+// mean unlimited scans. Accounts: per user.
+const GUEST_DAILY_LIMIT_PER_IP = 3;
+const ACCOUNT_DAILY_LIMIT = 10;
+
+// IPs are only stored hashed
+function hashIp(request: NextRequest): string {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  return createHash("sha256").update(`bederer-scan-limit:${ip}`).digest("hex");
+}
 
 // Analysis can take ~10-30s; give the function room on Vercel
 export const maxDuration = 60;
@@ -141,6 +157,32 @@ export async function POST(request: NextRequest) {
     }
     if (!SHOT_TYPES.includes(shotType)) {
       return NextResponse.json({ error: "Unknown shot type." }, { status: 400 });
+    }
+
+    // Claim one of today's scans before spending anything on the AI call
+    if (!admin) {
+      const { data: allowed, error: limitError } = await supabase.rpc("claim_scan", {
+        ip_hash: hashIp(request),
+        max_per_day: userId ? ACCOUNT_DAILY_LIMIT : GUEST_DAILY_LIMIT_PER_IP,
+      });
+      if (limitError) {
+        console.error("Failed to check scan limit:", limitError);
+        return NextResponse.json(
+          { error: "Scans are temporarily unavailable. Please try again in a few minutes." },
+          { status: 503 }
+        );
+      }
+      if (!allowed) {
+        return NextResponse.json(
+          {
+            error: userId
+              ? `You've reached today's limit of ${ACCOUNT_DAILY_LIMIT} scans. Come back tomorrow for more.`
+              : "Too many free scans from this network today. Create a free account to keep analyzing.",
+            code: "DAILY_LIMIT",
+          },
+          { status: 429 }
+        );
+      }
     }
 
     const context = userId ? await loadPlayerContext(supabase, userId, shotType) : undefined;

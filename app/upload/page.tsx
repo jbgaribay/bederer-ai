@@ -180,7 +180,8 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (errorData.code === "SIGNUP_REQUIRED") {
+        // Guests who hit the free-scan or daily limit get the sign-up prompt; accounts see the message
+        if (errorData.code === "SIGNUP_REQUIRED" || (errorData.code === "DAILY_LIMIT" && !user)) {
           markFreeScanUsed();
           setAuthModal({ open: true, reason: "limit" });
           return;
