@@ -163,6 +163,7 @@ export default function ProfilePage() {
               onChange={(e) => setUtr(e.target.value)}
               className={inputClass}
             />
+            <p className="mt-1 text-xs text-gray-500">Used for Coaching Report</p>
           </div>
           <div>
             <label htmlFor="usta_level" className={labelClass}>USTA level</label>

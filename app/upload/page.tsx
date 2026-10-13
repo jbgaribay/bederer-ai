@@ -504,16 +504,16 @@ export default function UploadPage() {
                     </div>
                   )}
                   {!user && !authLoading && !viewingSavedDate && (
-                    <div className="bg-yellow-50 border-4 border-yellow-400 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                    <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                       <div>
-                        <p className="font-black text-green-900 text-lg">That was your free analysis</p>
+                        <p className="font-black text-green-900">That was your free analysis</p>
                         <p className="text-green-800 text-sm">
                           Sign up free to keep analyzing and save this swing to your account.
                         </p>
                       </div>
                       <button
                         onClick={() => setAuthModal({ open: true, reason: "limit" })}
-                        className="shrink-0 bg-green-700 text-white px-5 py-3 rounded-lg font-bold hover:bg-green-800 border-2 border-green-900"
+                        className="shrink-0 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800 border-2 border-green-900"
                       >
                         Sign Up Free
                       </button>
