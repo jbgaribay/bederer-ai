@@ -6,6 +6,8 @@ interface CategoryCardProps {
   category: AnalysisCategory;
   // Image src for this category's reference frame (data URL or static path)
   frame?: string;
+  // Tighter spacing, smaller text, and a shorter frame (used in the report carousel)
+  compact?: boolean;
 }
 
 const getSeverityColor = (severity: string) => {
@@ -56,52 +58,62 @@ export const getScoreColor = (score: number) => {
   return "text-red-600";
 };
 
-export default function CategoryCard({ category, frame }: CategoryCardProps) {
+export default function CategoryCard({ category, frame, compact = false }: CategoryCardProps) {
   return (
     <div
-      className={`border-4 rounded-xl p-5 ${getSeverityColor(
+      className={`rounded-xl ${compact ? "border-2 p-3" : "border-4 p-5"} ${getSeverityColor(
         category.severity
       )} transition-all hover:shadow-lg`}
     >
       {/* Category Header with Score */}
       {/* Wraps so the score drops below the name when the card is narrow */}
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 mb-4">
+      <div className={`flex flex-wrap items-start justify-between gap-x-3 gap-y-1 ${compact ? "mb-2" : "mb-4"}`}>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 mt-0.5">{getSeverityIcon(category.severity)}</span>
-          <h4 className="font-black text-lg leading-tight">{category.name}</h4>
+          <span className={`shrink-0 mt-0.5 ${compact ? "[&>svg]:w-5 [&>svg]:h-5" : ""}`}>
+            {getSeverityIcon(category.severity)}
+          </span>
+          <h4 className={`font-black leading-tight ${compact ? "text-base" : "text-lg"}`}>{category.name}</h4>
         </div>
-        <div className={`shrink-0 text-2xl font-black ${getScoreColor(category.score)}`}>
+        <div className={`shrink-0 font-black ${compact ? "text-lg" : "text-2xl"} ${getScoreColor(category.score)}`}>
           {category.score}/10
         </div>
       </div>
 
       {/* Frame Image */}
       {frame && category.frameIndex !== undefined && (
-        <div className="mb-4">
-          <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+        <div className={compact ? "mb-2" : "mb-4"}>
+          <div className={`text-xs font-bold text-gray-600 uppercase tracking-wide ${compact ? "mb-1" : "mb-2"}`}>
             Reference Frame #{category.frameIndex + 1}
           </div>
           <img
             src={frame}
             alt={`Frame for ${category.name}`}
-            className="w-full rounded-lg border-4 border-gray-800 shadow-md"
+            className={
+              compact
+                ? "w-full aspect-video object-cover rounded-md border-2 border-gray-800"
+                : "w-full rounded-lg border-4 border-gray-800 shadow-md"
+            }
           />
         </div>
       )}
 
       {/* Observation and Tip */}
-      <div className="space-y-3">
+      <div className={compact ? "space-y-2" : "space-y-3"}>
         <div>
-          <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
+          <div className={`text-xs font-bold text-gray-600 uppercase tracking-wide ${compact ? "mb-0.5" : "mb-1"}`}>
             Observation
           </div>
-          <p className="text-sm italic leading-relaxed">{category.observation}</p>
+          <p className={`italic ${compact ? "text-[13px] leading-snug" : "text-sm leading-relaxed"}`}>
+            {category.observation}
+          </p>
         </div>
-        <div className="pt-2 border-t-2 border-gray-300">
-          <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
+        <div className={`border-t-2 border-gray-300 ${compact ? "pt-1.5" : "pt-2"}`}>
+          <div className={`text-xs font-bold text-gray-600 uppercase tracking-wide ${compact ? "mb-0.5" : "mb-1"}`}>
             Coaching Tips
           </div>
-          <p className="text-sm font-medium leading-relaxed">{category.tip}</p>
+          <p className={`font-medium ${compact ? "text-[13px] leading-snug" : "text-sm leading-relaxed"}`}>
+            {category.tip}
+          </p>
         </div>
       </div>
     </div>
