@@ -115,6 +115,7 @@ export default function CategoryCarousel({ categories, frames }: CategoryCarouse
                 className="snap-start shrink-0 min-w-0 w-full sm:w-[calc(50%-0.75rem)] flex [&>*]:w-full [&>*]:min-w-0"
               >
                 <CategoryCard
+                  compact
                   category={category}
                   frame={frame ? frameSrc(frame) : undefined}
                 />
